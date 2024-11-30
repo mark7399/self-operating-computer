@@ -22,43 +22,43 @@ class Config:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(Config, cls).__new__(cls)
-            # Put any initialization here
         return cls._instance
 
     def __init__(self):
         load_dotenv()
         self.verbose = False
         self.openai_api_key = (
-            None  # instance variables are backups in case saving to a `.env` fails
+            None 
         )
         self.google_api_key = (
-            None  # instance variables are backups in case saving to a `.env` fails
+            None  
         )
         self.anthropic_api_key = (
-            None  # instance variables are backups in case saving to a `.env` fails
+            None  
         )
 
-    def initialize_openai(self):
-        if self.verbose:
-            print("[Config][initialize_openai]")
+   def initialize_openai(self):
+    if self.verbose:
+        print("[Config][initialize_openai]")
 
-        if self.openai_api_key:
-            if self.verbose:
-                print("[Config][initialize_openai] using cached openai_api_key")
-            api_key = self.openai_api_key
-        else:
-            if self.verbose:
-                print(
-                    "[Config][initialize_openai] no cached openai_api_key, try to get from env."
-                )
-            api_key = os.getenv("OPENAI_API_KEY")
 
-        client = OpenAI(
-            api_key=api_key,
-        )
-        client.api_key = api_key
-        client.base_url = os.getenv("OPENAI_API_BASE_URL", client.base_url)
+    api_key = self.openai_api_key or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OpenAI API key is not set.")
+
+    base_url = os.getenv("OPENAI_API_BASE_URL", "https://api.openai.com/v1/")
+    if self.verbose:
+        print(f"[Config][initialize_openai] Using base_url: {base_url}")
+
+
+    try:
+        client = OpenAI(api_key=api_key)
+        client.base_url = base_url
         return client
+    except Exception as e:
+        print(f"Failed to initialize OpenAI client: {e}")
+        sys.exit(1)
+
 
     def initialize_google(self):
         if self.google_api_key:
